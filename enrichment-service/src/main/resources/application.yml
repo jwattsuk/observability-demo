@@ -1,0 +1,59 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    namlogging:
+  level:
+    root: INFO
+    com.jwattsuk.enrichment: DEBUGnrichment-service
+  profiles:
+    active: default
+
+# Default profile configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: default
+
+enrichment:
+  delay:
+    min: 100
+    max: 1500
+  failure:
+    rate: 0.02
+
+logging:
+  level:
+    com.observability.demo.enrichment: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+enrichment:
+  delay:
+    min: 200
+    max: 2000
+  failure:
+    rate: 0.05
+
+  logging:
+    level:
+      root: INFO
+      com.jwattsuk.enrichment: INFO

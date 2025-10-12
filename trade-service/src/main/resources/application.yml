@@ -1,0 +1,76 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: trade-service
+  profiles:
+    active: default
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+# Default profile configuration
+---
+spring:
+  config:
+    activate:
+      on-profile: default
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tradedb
+    username: tradeuser
+    password: tradepass
+    driver-class-name: org.postgresql.Driver
+
+enrichment:
+  service:
+    url: http://localhost:8081
+    timeout: 30
+
+logging:
+  level:
+    com.jwattsuk.trade: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:postgresql}:${DB_PORT:5432}/${DB_NAME:tradedb}
+    username: ${DB_USER:tradeuser}
+    password: ${DB_PASSWORD:tradepass}
+    driver-class-name: org.postgresql.Driver
+
+enrichment:
+  service:
+    url: ${ENRICHMENT_SERVICE_URL:http://enrichment-service:8080}
+    timeout: 30
+
+logging:
+  level:
+    com.jwattsuk.trade: INFO
+    root: INFO
+    org.hibernate.SQL: WARN

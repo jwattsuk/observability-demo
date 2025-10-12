@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  postgresql:
+    image: postgres:15-alpine
+    container_name: trade-db
+    environment:
+      POSTGRES_DB: tradedb
+      POSTGRES_USER: tradeuser
+      POSTGRES_PASSWORD: tradepass
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - trade-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tradeuser -d tradedb"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  enrichment-service:
+    build:
+      context: ./enrichment-service
+      dockerfile: Dockerfile
+    container_name: enrichment-service
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - trade-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  trade-service:
+    build:
+      context: ./trade-service
+      dockerfile: Dockerfile
+    container_name: trade-service
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=tradedb
+      - DB_USER=tradeuser
+      - DB_PASSWORD=tradepass
+      - ENRICHMENT_SERVICE_URL=http://enrichment-service:8080
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      enrichment-service:
+        condition: service_healthy
+    networks:
+      - trade-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web-ui:
+    build:
+      context: ./web-ui
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=http://localhost:8082
+    container_name: trade-web-ui
+    ports:
+      - "3000:3000"
+    depends_on:
+      trade-service:
+        condition: service_healthy
+    networks:
+      - trade-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  trade-network:
+    driver: bridge

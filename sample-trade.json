@@ -1,0 +1,11 @@
+{
+    "tradeId": "TRD-SAMPLE-001",
+    "counterparty": "Example Bank",
+    "instrumentType": "OPTION",
+    "underlyingAsset": "AAPL",
+    "notionalAmount": 1500000.00,
+    "currency": "USD",
+    "strikePrice": 175.00,
+    "maturityDate": "2024-12-31",
+    "direction": "BUY"
+}
