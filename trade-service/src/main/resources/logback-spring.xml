@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProfile name="docker">
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeContext>true</includeContext>
+                <includeMdc>true</includeMdc>
+                <customFields>{"service":"trade-service","version":"1.0.0-SNAPSHOT"}</customFields>
+                <fieldNames>
+                    <timestamp>@timestamp</timestamp>
+                    <message>message</message>
+                    <level>level</level>
+                    <thread>thread</thread>
+                    <logger>logger</logger>
+                </fieldNames>
+            </encoder>
+        </appender>
+        
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+        </root>
+        
+        <logger name="com.jwattsuk.trade" level="INFO"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+    </springProfile>
+    
+    <springProfile name="!docker">
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %5level %pid --- [%15.15thread] %-40.40logger{39} [%X{traceId:-},%X{spanId:-}] : %msg%n</pattern>
+            </encoder>
+        </appender>
+        
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+        </root>
+        
+        <logger name="com.jwattsuk.trade" level="DEBUG"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+    </springProfile>
+</configuration>

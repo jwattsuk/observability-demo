@@ -1,0 +1,54 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'docker-compose'
+    project: 'observability-demo'
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Trade Service metrics
+  - job_name: 'trade-service'
+    static_configs:
+      - targets: ['trade-service:8080']
+    scrape_interval: 15s
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # Enrichment Service metrics
+  - job_name: 'enrichment-service'
+    static_configs:
+      - targets: ['enrichment-service:8080']
+    scrape_interval: 15s
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # PostgreSQL metrics (via postgres_exporter if needed)
+  # - job_name: 'postgresql'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+
+  # Docker container metrics (via cAdvisor if needed)
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']

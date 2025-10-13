@@ -13,7 +13,17 @@
         "@emotion/react": "^11.11.0",
         "@emotion/styled": "^11.11.0",
         "react-hook-form": "^7.48.0",
-        "date-fns": "^2.30.0"
+        "date-fns": "^2.30.0",
+        "@opentelemetry/api": "^1.6.0",
+        "@opentelemetry/sdk-trace-web": "^1.17.0",
+        "@opentelemetry/auto-instrumentations-web": "^0.34.0",
+        "@opentelemetry/exporter-trace-otlp-http": "^0.44.0",
+        "@opentelemetry/instrumentation": "^0.44.0",
+        "@opentelemetry/instrumentation-fetch": "^0.44.0",
+        "@opentelemetry/instrumentation-xml-http-request": "^0.44.0",
+        "@opentelemetry/instrumentation-user-interaction": "^0.34.0",
+        "@opentelemetry/resources": "^1.17.0",
+        "@opentelemetry/semantic-conventions": "^1.17.0"
     },
     "scripts": {
         "start": "react-scripts start",

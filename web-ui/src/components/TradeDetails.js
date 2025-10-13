@@ -141,6 +141,7 @@ const TradeDetails = () => {
 
     useEffect(() => {
         fetchTrade();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tradeId]);
 
     if (loading) {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { trace } from '@opentelemetry/api';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -9,26 +10,73 @@ const api = axios.create({
     },
 });
 
-// Request interceptor for logging
+// Request interceptor for logging and tracing
 api.interceptors.request.use(
     (config) => {
         console.log(`Making ${config.method.toUpperCase()} request to ${config.url}`);
+
+        // Add custom span attributes
+        const span = trace.getActiveSpan();
+        if (span) {
+            span.setAttributes({
+                'http.method': config.method.toUpperCase(),
+                'http.url': config.url,
+                'user_agent': navigator.userAgent,
+            });
+        }
+
         return config;
     },
     (error) => {
         console.error('Request error:', error);
+
+        // Record error in active span
+        const span = trace.getActiveSpan();
+        if (span) {
+            span.recordException(error);
+            span.setStatus({ code: trace.SpanStatusCode.ERROR });
+        }
+
         return Promise.reject(error);
     }
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling and tracing
 api.interceptors.response.use(
     (response) => {
         console.log(`Response received from ${response.config.url}:`, response.status);
+
+        // Add response attributes to span
+        const span = trace.getActiveSpan();
+        if (span) {
+            span.setAttributes({
+                'http.status_code': response.status,
+                'http.response.size': JSON.stringify(response.data).length,
+            });
+        }
+
         return response;
     },
     (error) => {
         console.error('Response error:', error);
+
+        // Record error details in span
+        const span = trace.getActiveSpan();
+        if (span) {
+            span.recordException(error);
+            span.setStatus({
+                code: trace.SpanStatusCode.ERROR,
+                message: error.message
+            });
+
+            if (error.response) {
+                span.setAttributes({
+                    'http.status_code': error.response.status,
+                    'error.message': error.response.data?.message || error.message,
+                });
+            }
+        }
+
         if (error.response) {
             console.error('Error data:', error.response.data);
             console.error('Error status:', error.response.status);

@@ -3,10 +3,7 @@ server:
 
 spring:
   application:
-    namlogging:
-  level:
-    root: INFO
-    com.jwattsuk.enrichment: DEBUGnrichment-service
+    name: enrichment-service
   profiles:
     active: default
 
@@ -26,19 +23,45 @@ enrichment:
 
 logging:
   level:
-    com.observability.demo.enrichment: DEBUG
+    com.jwattsuk.enrichment: DEBUG
     org.springframework.web: INFO
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{traceId:-},%X{spanId:-}] - %msg%n"
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5,0.9,0.95,0.99
+  tracing:
+    sampling:
+      probability: 1.0
+
+# OpenTelemetry configuration
+otel:
+  exporter:
+    otlp:
+      endpoint: http://tempo:4318
+      protocol: http/protobuf
+  resource:
+    attributes:
+      service.name: enrichment-service
+      service.version: 1.0.0-SNAPSHOT
+      deployment.environment: docker-compose
 
 ---
 spring:
@@ -53,7 +76,7 @@ enrichment:
   failure:
     rate: 0.05
 
-  logging:
-    level:
-      root: INFO
-      com.jwattsuk.enrichment: INFO
+logging:
+  level:
+    root: INFO
+    com.jwattsuk.enrichment: INFO
