@@ -253,25 +253,242 @@ jvm_memory_used_bytes / jvm_memory_max_bytes * 100
 - Query: `{service="trade-service"} |= "ERROR"`
 - Filter by service, log level, or trace ID
 
-### 📊 Pre-built Dashboards
+### 📊 Using Grafana Dashboards & Log Search
 
-#### 1. Spring Boot Application Overview
-- Request rates and error rates by service
-- Response time percentiles (50th, 95th, 99th)
-- JVM memory usage and garbage collection
-- Thread counts and database connection pools
+#### 🎛️ Accessing Grafana
+1. **Open Grafana**: http://localhost:3001
+2. **Login**: Username: `admin`, Password: `admin`
+3. **Navigation**: Use left sidebar to access dashboards and explore features
 
-#### 2. Application Logs Dashboard
-- Log volume by service and level
-- Error rate trends
-- Real-time log streaming
-- Log level distribution
+#### 📊 Pre-built Dashboards
 
-#### 3. Distributed Tracing Overview
-- Service dependency map
-- Request flow visualization  
-- Latency analysis by service
-- Error rate tracking across the distributed system
+**Dashboard Access**: Home → Dashboards → Browse → Select dashboard
+
+##### 1. **Spring Boot Application Overview**
+**Location**: `Dashboards → Spring Boot Overview`
+- **Request Metrics**: HTTP request rates, response times, error rates by service
+- **Performance**: 50th, 95th, 99th percentile response times
+- **JVM Health**: Memory usage, garbage collection, thread counts
+- **Database**: Connection pool metrics, query performance
+- **Custom Variables**: Filter by service, time range, environment
+
+**Key Panels**:
+```promql
+# Request rate per service
+sum(rate(http_server_requests_seconds_count[5m])) by (job)
+
+# 95th percentile response time
+histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m]))
+
+# Error rate
+sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m]))
+```
+
+##### 2. **Application Logs Dashboard**
+**Location**: `Dashboards → Application Logs`
+- **Log Volume**: Messages per second by service and log level
+- **Error Trends**: Error rate over time with alerting thresholds
+- **Service Health**: Log-based health indicators
+- **Real-time Streaming**: Live log tail for monitoring
+
+**Key Features**:
+- Filter logs by service, level, time range
+- Drill-down from metrics to related logs
+- Error spike detection and alerting
+- Log pattern analysis and anomaly detection
+
+##### 3. **Distributed Tracing Overview**
+**Location**: `Dashboards → Distributed Tracing`
+- **Service Map**: Visual representation of service dependencies
+- **Trace Analysis**: Request flow visualization across services
+- **Latency Breakdown**: Time spent in each service/operation
+- **Error Tracking**: Failed traces and error propagation
+
+##### 4. **Trade Creation Monitoring** (Business-Specific)
+**Location**: `Dashboards → Trade Creation Monitoring`
+- **Trade Metrics**: Creation rate, success/failure rates, processing time
+- **Enrichment Performance**: Success rate, latency, error patterns
+- **Business KPIs**: Trades by counterparty, instrument type, status
+- **SLA Monitoring**: Processing time SLAs and breach alerts
+
+#### 🔍 Using Grafana Explore for Log Search
+
+**Access**: Left sidebar → Explore (compass icon) → Select "Loki" data source
+
+##### Basic LogQL Query Patterns
+
+**View logs from specific service**:
+```logql
+{container_name="trade-service"}
+```
+
+**Search for specific text (like grep)**:
+```logql
+{container_name="trade-service"} |= "TRD-001"
+```
+
+**Filter by log level**:
+```logql
+{container_name="trade-service", level="ERROR"}
+```
+
+**Multiple conditions (AND logic)**:
+```logql
+{container_name="trade-service"} |= "TRD-001" |= "Goldman"
+```
+
+**Exclude patterns (like grep -v)**:
+```logql
+{container_name="trade-service"} != "health" != "actuator"
+```
+
+**Case-insensitive search**:
+```logql
+{container_name="trade-service"} |~ "(?i)error"
+```
+
+##### Advanced Log Queries
+
+**Search across multiple services**:
+```logql
+{container_name=~"trade-service|enrichment-service"} |= "ERROR"
+```
+
+**JSON field extraction and filtering**:
+```logql
+{container_name="trade-service"} | json | tradeId="TRD-001"
+```
+
+**Regular expression patterns**:
+```logql
+{container_name="trade-service"} |~ "TRD-[0-9]+"
+```
+
+**Time-based queries**:
+```logql
+{container_name="trade-service"}[5m]
+```
+
+**Rate calculations (logs per second)**:
+```logql
+rate({container_name="trade-service"}[1m])
+```
+
+**Error rate calculations**:
+```logql
+sum(rate({container_name="trade-service", level="ERROR"}[5m])) / sum(rate({container_name="trade-service"}[5m]))
+```
+
+##### LogQL Operators Reference
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `\|=` | Contains (case-sensitive) | `\|= "ERROR"` |
+| `!=` | Does not contain | `!= "health"` |
+| `\|~` | Regex match | `\|~ "TRD-[0-9]+"` |
+| `!~` | Regex does not match | `!~ "DEBUG\|TRACE"` |
+| `\| json` | Parse JSON fields | `\| json \| level="ERROR"` |
+| `\| logfmt` | Parse logfmt fields | `\| logfmt \| status_code="500"` |
+| `\| regexp` | Extract with regex | `\| regexp "(?P<trade_id>TRD-[0-9]+)"` |
+
+##### Practical Log Search Examples
+
+**Find all errors in the last hour**:
+```logql
+{container_name=~"trade-service|enrichment-service"} |= "ERROR"
+```
+
+**Track specific trade processing**:
+```logql
+{container_name=~"trade-service|enrichment-service"} |= "TRD-001"
+```
+
+**Monitor trade creation flow**:
+```logql
+{container_name="trade-service"} |= "trade creation" or "trade created"
+```
+
+**Find slow enrichment calls**:
+```logql
+{container_name="enrichment-service"} |~ "processing.*[5-9][0-9]{3}ms"
+```
+
+**Database error investigation**:
+```logql
+{container_name="trade-service"} |= "database" |= "error"
+```
+
+**Correlation with trace IDs**:
+```logql
+{container_name=~".*"} | json | traceId="abc123def456"
+```
+
+#### 🔗 Correlating Logs, Metrics, and Traces
+
+##### In Grafana Explore:
+
+1. **Start with Metrics** (Prometheus):
+   ```promql
+   rate(http_server_requests_seconds_count{status=~"5.."}[5m])
+   ```
+
+2. **Drill down to Logs** (Loki):
+   ```logql
+   {container_name="trade-service", level="ERROR"}
+   ```
+
+3. **Find Related Traces** (Tempo):
+   - Copy trace ID from log entry
+   - Switch to Tempo data source
+   - Search by trace ID: `abc123def456`
+
+##### Dashboard Drill-down Flows:
+
+- **Error Alert** → **Error Rate Panel** → **Error Logs** → **Failed Traces**
+- **High Latency** → **Response Time Panel** → **Slow Request Logs** → **Trace Analysis**
+- **Trade Processing** → **Business Metrics** → **Application Logs** → **Service Dependencies**
+
+#### 📊 Creating Custom Dashboards
+
+##### Quick Dashboard Creation:
+1. **New Dashboard**: + icon → Dashboard → Add panel
+2. **Select Data Source**: Prometheus, Loki, or Tempo
+3. **Write Query**: Use examples above as starting points
+4. **Configure Visualization**: Choose appropriate chart type
+5. **Set Time Range**: Configure default time window
+6. **Add Variables**: Enable filtering by service, environment, etc.
+
+##### Recommended Panel Types:
+- **Time Series**: For metrics over time (request rates, response times)
+- **Stat**: For single values (current error rate, active users)
+- **Logs**: For log streaming and search results
+- **Traces**: For distributed trace visualization
+- **Heatmap**: For latency distribution analysis
+
+#### 🚨 Setting Up Alerts
+
+##### Alert Creation Process:
+1. **Dashboard Panel** → **Alert tab** → **Create Alert Rule**
+2. **Define Condition**: When error rate > 5% for 5 minutes
+3. **Set Notification**: Email, Slack, webhook
+4. **Test Alert**: Use "Test Rule" feature
+
+##### Common Alert Rules:
+
+**High Error Rate**:
+```promql
+sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m])) > 0.05
+```
+
+**High Response Time**:
+```promql
+histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 2
+```
+
+**Low Trade Creation Rate**:
+```promql
+rate(trades_created_total[5m]) < 0.1
+```
 
 ## �️ Development Setup
 
