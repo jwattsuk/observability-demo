@@ -60,8 +60,12 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+        trade.creation: true
       percentiles:
         http.server.requests: 0.5,0.9,0.95,0.99
+    tags:
+      application: trade-service
+      environment: ${ENVIRONMENT:dev}
   tracing:
     sampling:
       probability: 1.0
@@ -94,6 +98,33 @@ enrichment:
   service:
     url: ${ENRICHMENT_SERVICE_URL:http://enrichment-service:8080}
     timeout: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        trade.creation: true
+      percentiles:
+        http.server.requests: 0.5,0.9,0.95,0.99
+    tags:
+      application: trade-service
+      environment: ${ENVIRONMENT:docker}
+  tracing:
+    sampling:
+      probability: 1.0
 
 logging:
   level:

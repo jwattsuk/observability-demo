@@ -6,6 +6,7 @@ import com.jwattsuk.trade.dto.TradeResponse;
 import com.jwattsuk.trade.entity.Trade;
 import com.jwattsuk.trade.entity.TradeStatus;
 import com.jwattsuk.trade.repository.TradeRepository;
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -33,6 +34,7 @@ public class TradeService {
         this.enrichmentClient = enrichmentClient;
     }
 
+    @Timed(value = "trade.creation", description = "Time taken to create a trade")
     public TradeResponse createTrade(final TradeCreateRequest request) {
         LOG.info("Creating new trade with ID: {}", request.getTradeId());
 
