@@ -266,6 +266,9 @@ jvm_memory_used_bytes / jvm_memory_max_bytes * 100
 
 ##### 1. **Spring Boot Application Overview**
 **Location**: `Dashboards → Spring Boot Overview`
+
+![Spring Boot Application Overview](docs/images/Spring%20Boot%20Application%20Overview.png)
+
 - **Request Metrics**: HTTP request rates, response times, error rates by service
 - **Performance**: 50th, 95th, 99th percentile response times
 - **JVM Health**: Memory usage, garbage collection, thread counts
@@ -299,6 +302,9 @@ sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[5m])) / sum(rate(
 
 ##### 3. **Distributed Tracing Overview**
 **Location**: `Dashboards → Distributed Tracing`
+
+![Distributed Tracing Overview](docs/images/Distributed%20Tracing%20Overview.png)
+
 - **Service Map**: Visual representation of service dependencies
 - **Trace Analysis**: Request flow visualization across services
 - **Latency Breakdown**: Time spent in each service/operation
@@ -306,6 +312,11 @@ sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[5m])) / sum(rate(
 
 ##### 4. **Trade Creation Monitoring** (Business-Specific)
 **Location**: `Dashboards → Trade Creation Monitoring`
+
+![Trade Creation Monitoring](docs/images/Trade%20Creation%20Monitoring%20%231.png)
+
+![Trade Creation Monitoring - Details](docs/images/Trade%20Creation%20Monitoring%20%232.png)
+
 - **Trade Metrics**: Creation rate, success/failure rates, processing time
 - **Enrichment Performance**: Success rate, latency, error patterns
 - **Business KPIs**: Trades by counterparty, instrument type, status
