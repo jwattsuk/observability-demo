@@ -6,6 +6,7 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
+    uid: prometheus
     editable: true
     jsonData:
       httpMethod: POST
@@ -17,6 +18,7 @@ datasources:
     type: loki
     access: proxy
     url: http://loki:3100
+    uid: loki
     editable: true
     jsonData:
       maxLines: 1000

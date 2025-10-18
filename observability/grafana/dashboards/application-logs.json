@@ -17,7 +17,7 @@
             "datasource": "Loki",
             "targets": [
                 {
-                    "expr": "sum(rate({service=~\"trade-service|enrichment-service\"}[5m])) by (service)",
+                    "expr": "sum(rate({container_name=~\"trade-service|enrichment-service\"}[5m])) by (container_name)",
                     "refId": "A"
                 }
             ],
@@ -41,7 +41,7 @@
             "datasource": "Loki",
             "targets": [
                 {
-                    "expr": "sum by (level) (count_over_time({service=~\"trade-service|enrichment-service\"} [$__interval]))",
+                    "expr": "sum by (level) (count_over_time({container_name=~\"trade-service|enrichment-service\"} [$__interval]))",
                     "refId": "A"
                 }
             ],
@@ -64,7 +64,7 @@
             "datasource": "Loki",
             "targets": [
                 {
-                    "expr": "sum(count_over_time({service=~\"trade-service|enrichment-service\"} |= \"ERROR\" [$__interval]))",
+                    "expr": "sum(count_over_time({container_name=~\"trade-service|enrichment-service\"} |= \"ERROR\" [$__interval]))",
                     "refId": "A"
                 }
             ],
@@ -106,7 +106,7 @@
             "datasource": "Loki",
             "targets": [
                 {
-                    "expr": "{service=~\"trade-service|enrichment-service\"} |= \"\"",
+                    "expr": "{container_name=~\"trade-service|enrichment-service\"} |= \"\"",
                     "refId": "A"
                 }
             ],
