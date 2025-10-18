@@ -601,8 +601,29 @@ otel:
 ## 🧪 Testing the Observability Stack
 
 ### 1. Generate Sample Data
+
+#### Using the Trade Booking Script (Recommended)
 ```bash
-# Create several trades to generate metrics and traces
+# Book 10 random trades with realistic data
+./book-trades.sh 10
+
+# Book 50 trades to generate significant traffic
+./book-trades.sh 50
+
+# Default: book 5 trades
+./book-trades.sh
+```
+
+The `book-trades.sh` script automatically generates realistic trade data with:
+- Random counterparties (Goldman Sachs, JP Morgan, etc.)
+- Various instrument types (OPTIONS, FUTURES, SWAPS, FORWARDS)
+- Multiple underlying assets (AAPL, GOOGL, MSFT, etc.)
+- Random notional amounts, strike prices, and future maturity dates
+- Colored output showing success/failure status
+
+#### Manual Trade Creation
+```bash
+# Create several trades manually using curl
 for i in {1..5}; do
   curl -X POST http://localhost:8082/api/trades \
     -H "Content-Type: application/json" \
