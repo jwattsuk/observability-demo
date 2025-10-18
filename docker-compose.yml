@@ -30,9 +30,8 @@ services:
       - "8081:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318
-      - OTEL_SERVICE_NAME=enrichment-service
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=enrichment-service,service.version=1.0.0-SNAPSHOT,deployment.environment=docker-compose
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT=http://tempo:4318/v1/traces
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
     networks:
       - trade-network
     labels:
@@ -59,9 +58,11 @@ services:
       - DB_USER=tradeuser
       - DB_PASSWORD=tradepass
       - ENRICHMENT_SERVICE_URL=http://enrichment-service:8080
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318
-      - OTEL_SERVICE_NAME=trade-service
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=trade-service,service.version=1.0.0-SNAPSHOT,deployment.environment=docker-compose
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT=http://tempo:4318/v1/traces
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - LOGGING_LEVEL_IO_MICROMETER_TRACING=DEBUG
+      - LOGGING_LEVEL_IO_OPENTELEMETRY=DEBUG
+      - LOGGING_LEVEL_IO_OPENTELEMETRY_EXPORTER=TRACE
     depends_on:
       postgresql:
         condition: service_healthy
@@ -117,6 +118,7 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
+      - '--web.enable-remote-write-receiver'
     networks:
       - trade-network
     healthcheck:

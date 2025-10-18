@@ -43,6 +43,14 @@ scrape_configs:
     params:
       format: ['prometheus']
 
+  # Tempo metrics generator - scrapes span metrics
+  - job_name: 'tempo'
+    static_configs:
+      - targets: ['tempo:3200']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
   # PostgreSQL metrics (via postgres_exporter if needed)
   # - job_name: 'postgresql'
   #   static_configs:

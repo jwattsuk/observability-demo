@@ -86,23 +86,30 @@ fi
 
 print_status "Waiting for services to be ready..."
 
-# Wait for each service
-wait_for_service "http://localhost:5432" "PostgreSQL" || exit 1
+# Check PostgreSQL using docker-compose ps
+print_status "Checking PostgreSQL status..."
+if docker-compose ps postgresql | grep -q "healthy"; then
+    print_success "PostgreSQL is ready ✓"
+else
+    print_warning "PostgreSQL may not be ready yet"
+fi
+
+# Wait for each HTTP service
 wait_for_service "http://localhost:8081/actuator/health" "Enrichment Service" || exit 1
-wait_for_service "http://localhost:8080/actuator/health" "Trade Service" || exit 1
+wait_for_service "http://localhost:8082/actuator/health" "Trade Service" || exit 1
 wait_for_service "http://localhost:3000" "Web UI" || exit 1
 
 echo ""
 print_status "Running API tests..."
 
 # Test health endpoints
-test_endpoint "http://localhost:8080/actuator/health" "Trade Service Health Check"
+test_endpoint "http://localhost:8082/actuator/health" "Trade Service Health Check"
 test_endpoint "http://localhost:8081/actuator/health" "Enrichment Service Health Check"
 test_endpoint "http://localhost:3000" "Web UI Accessibility"
 
 # Test trade service endpoints
-test_endpoint "http://localhost:8080/api/trades/list" "Get All Trades"
-test_endpoint "http://localhost:8080/api/trades/health" "Trade Service Custom Health"
+test_endpoint "http://localhost:8082/api/trades/list" "Get All Trades"
+test_endpoint "http://localhost:8082/api/trades/health" "Trade Service Custom Health"
 
 # Test enrichment service endpoints
 test_endpoint "http://localhost:8081/api/enrichment/health" "Enrichment Service Custom Health"
@@ -124,12 +131,12 @@ trade_data='{
 }'
 
 print_test "Creating test trade..."
-create_response=$(curl -s -w "%{http_code}" -X POST "http://localhost:8080/api/trades" \
+create_response=$(curl -s -w "\n%{http_code}" -X POST "http://localhost:8082/api/trades" \
   -H "Content-Type: application/json" \
   -d "$trade_data")
 
-status_code=$(echo "$create_response" | tail -c 4)
-response_body=$(echo "$create_response" | head -c -4)
+status_code=$(echo "$create_response" | tail -n 1)
+response_body=$(echo "$create_response" | sed '$d')
 
 if [ "$status_code" = "201" ]; then
     print_success "Trade creation ✓"
@@ -139,7 +146,7 @@ if [ "$status_code" = "201" ]; then
         trade_id=$(echo "$response_body" | jq -r '.tradeId')
         print_test "Retrieving created trade: $trade_id"
         
-        if test_endpoint "http://localhost:8080/api/trades/trade-id/$trade_id" "Trade Retrieval"; then
+        if test_endpoint "http://localhost:8082/api/trades/trade-id/$trade_id" "Trade Retrieval"; then
             print_success "Trade retrieval ✓"
         fi
     else
@@ -164,11 +171,11 @@ enrichment_data='{
 }'
 
 print_test "Testing enrichment endpoint..."
-enrich_response=$(curl -s -w "%{http_code}" -X POST "http://localhost:8081/api/enrichment/trade" \
+enrich_response=$(curl -s -w "\n%{http_code}" -X POST "http://localhost:8081/api/enrichment/trade" \
   -H "Content-Type: application/json" \
   -d "$enrichment_data")
 
-enrich_status=$(echo "$enrich_response" | tail -c 4)
+enrich_status=$(echo "$enrich_response" | tail -n 1)
 
 if [ "$enrich_status" = "200" ]; then
     print_success "Enrichment service ✓"
@@ -194,7 +201,7 @@ echo "5. Click on a trade to view detailed information including enrichment data
 
 echo ""
 print_status "API Documentation:"
-echo "- Trade Service API: http://localhost:8080/api/trades"
+echo "- Trade Service API: http://localhost:8082/api/trades"
 echo "- Enrichment Service API: http://localhost:8081/api/enrichment"
 echo "- Sample trade JSON available in: sample-trade.json"
 

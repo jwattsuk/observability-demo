@@ -1,132 +1,138 @@
 {
-    "dashboard": {
-        "id": null,
-        "title": "Application Logs",
-        "tags": [
-            "logs",
-            "observability"
-        ],
-        "style": "dark",
-        "timezone": "browser",
-        "panels": [
-            {
-                "id": 1,
-                "title": "Log Volume by Service",
-                "type": "timeseries",
-                "targets": [
-                    {
-                        "expr": "sum(rate({service=~\"trade-service|enrichment-service\"}[5m])) by (service)",
-                        "refId": "A"
-                    }
-                ],
-                "fieldConfig": {
-                    "defaults": {
-                        "unit": "logs/s",
-                        "min": 0
-                    }
-                },
-                "gridPos": {
-                    "h": 8,
-                    "w": 24,
-                    "x": 0,
-                    "y": 0
+    "id": null,
+    "title": "Application Logs",
+    "tags": [
+        "logs",
+        "observability"
+    ],
+    "style": "dark",
+    "timezone": "browser",
+    "editable": true,
+    "graphTooltip": 0,
+    "panels": [
+        {
+            "id": 1,
+            "title": "Log Volume by Service",
+            "type": "timeseries",
+            "datasource": "Loki",
+            "targets": [
+                {
+                    "expr": "sum(rate({service=~\"trade-service|enrichment-service\"}[5m])) by (service)",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "logs/s",
+                    "min": 0
                 }
             },
-            {
-                "id": 2,
-                "title": "Log Levels",
-                "type": "piechart",
-                "targets": [
-                    {
-                        "expr": "sum by (level) (count_over_time({service=~\"trade-service|enrichment-service\"} [$__interval]))",
-                        "refId": "A"
-                    }
-                ],
-                "fieldConfig": {
-                    "defaults": {
-                        "unit": "short"
-                    }
-                },
-                "gridPos": {
-                    "h": 8,
-                    "w": 12,
-                    "x": 0,
-                    "y": 8
-                }
-            },
-            {
-                "id": 3,
-                "title": "Error Logs",
-                "type": "stat",
-                "targets": [
-                    {
-                        "expr": "sum(count_over_time({service=~\"trade-service|enrichment-service\"} |= \"ERROR\" [$__interval]))",
-                        "refId": "A"
-                    }
-                ],
-                "fieldConfig": {
-                    "defaults": {
-                        "unit": "short",
-                        "color": {
-                            "mode": "thresholds"
-                        },
-                        "thresholds": {
-                            "steps": [
-                                {
-                                    "color": "green",
-                                    "value": null
-                                },
-                                {
-                                    "color": "yellow",
-                                    "value": 1
-                                },
-                                {
-                                    "color": "red",
-                                    "value": 10
-                                }
-                            ]
-                        }
-                    }
-                },
-                "gridPos": {
-                    "h": 8,
-                    "w": 12,
-                    "x": 12,
-                    "y": 8
-                }
-            },
-            {
-                "id": 4,
-                "title": "Recent Application Logs",
-                "type": "logs",
-                "targets": [
-                    {
-                        "expr": "{service=~\"trade-service|enrichment-service\"} |= \"\"",
-                        "refId": "A"
-                    }
-                ],
-                "options": {
-                    "showTime": true,
-                    "showLabels": false,
-                    "showCommonLabels": false,
-                    "wrapLogMessage": true,
-                    "prettifyLogMessage": false,
-                    "enableLogDetails": true,
-                    "dedupStrategy": "none",
-                    "sortOrder": "Descending"
-                },
-                "gridPos": {
-                    "h": 12,
-                    "w": 24,
-                    "x": 0,
-                    "y": 16
-                }
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 0
             }
-        ],
-        "time": {
-            "from": "now-1h",
-            "to": "now"
         },
-        "refresh": "5s"
-    }
+        {
+            "id": 2,
+            "title": "Log Levels",
+            "type": "piechart",
+            "datasource": "Loki",
+            "targets": [
+                {
+                    "expr": "sum by (level) (count_over_time({service=~\"trade-service|enrichment-service\"} [$__interval]))",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short"
+                }
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 8
+            }
+        },
+        {
+            "id": 3,
+            "title": "Error Logs",
+            "type": "stat",
+            "datasource": "Loki",
+            "targets": [
+                {
+                    "expr": "sum(count_over_time({service=~\"trade-service|enrichment-service\"} |= \"ERROR\" [$__interval]))",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 1
+                            },
+                            {
+                                "color": "red",
+                                "value": 10
+                            }
+                        ]
+                    }
+                }
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 8
+            }
+        },
+        {
+            "id": 4,
+            "title": "Recent Application Logs",
+            "type": "logs",
+            "datasource": "Loki",
+            "targets": [
+                {
+                    "expr": "{service=~\"trade-service|enrichment-service\"} |= \"\"",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "showTime": true,
+                "showLabels": false,
+                "showCommonLabels": false,
+                "wrapLogMessage": true,
+                "prettifyLogMessage": false,
+                "enableLogDetails": true,
+                "dedupStrategy": "none",
+                "sortOrder": "Descending"
+            },
+            "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 16
+            }
+        }
+    ],
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "refresh": "5s",
+    "schemaVersion": 27,
+    "version": 1
 }
